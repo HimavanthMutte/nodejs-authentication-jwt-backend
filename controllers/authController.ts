@@ -12,13 +12,18 @@ type SignupRequest = {
   password: string;
 };
 
+type LoginRequest = {
+  email: string;
+  password: string;
+};
+
 export const signup = async (
   req: Request<{}, {}, SignupRequest>,
   res: Response,
 ): Promise<void> => {
   try {
     const { name, email, password } = req.body;
-    if (!name.trim() || !email.trim() || !password.trim()) {
+    if (!name.trim() || !email.trim() || !password) {
       res.status(400).json({
         message: "Name, email and password are required",
       });
@@ -59,4 +64,54 @@ export const signup = async (
   }
 };
 
-export const login = async (): Promise<void> => {};
+export const login = async (
+  req: Request<{}, {}, LoginRequest>,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { email, password } = req.body;
+    if (!email?.trim() || !password) {
+      res.status(400).json({
+        message: "Email and password are required",
+      });
+      return;
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(401).json({
+        message: "Invalid email or password",
+      });
+      return;
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      res.status(401).json({
+        message: "Invalid email or password",
+      });
+      return;
+    }
+
+    const token = jwt.sign(
+      { userId: user._id.toString() },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1h" },
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (err: unknown) {
+    console.error(err);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};

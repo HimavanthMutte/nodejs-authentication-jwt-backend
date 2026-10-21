@@ -22,8 +22,11 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.96",
     "@types/node": "^26.6.5",
     "prettier": "^3.9.10",
+    "prettier-eslint": "^17.1.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
